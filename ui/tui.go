@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/MatchaTi/vimnm/network"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -12,7 +13,15 @@ import (
 )
 
 var (
-	appStyle = lipgloss.NewStyle().Padding(1, 2).Border(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color("62"))
+	appStyle   = lipgloss.NewStyle().Padding(1, 2).Border(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color("62"))
+	keyConnect = key.NewBinding(
+		key.WithKeys("enter", "l"),
+		key.WithHelp("enter/l", "connect"),
+	)
+	keyDisconnect = key.NewBinding(
+		key.WithKeys("d"),
+		key.WithHelp("d", "disconnect"),
+	)
 )
 
 type sessionState int
@@ -24,6 +33,10 @@ const (
 )
 
 type connectResultMsg struct {
+	err error
+}
+
+type disconnectResultMsg struct {
 	err error
 }
 
@@ -51,6 +64,13 @@ func InitialModel() model {
 
 	mList := list.New(fetchNetworkItems(), list.NewDefaultDelegate(), 60, 20)
 	mList.Title = "Available Networks"
+
+	mList.AdditionalShortHelpKeys = func() []key.Binding {
+		return []key.Binding{keyConnect, keyDisconnect}
+	}
+	mList.AdditionalFullHelpKeys = func() []key.Binding {
+		return []key.Binding{keyConnect, keyDisconnect}
+	}
 
 	ti := textinput.New()
 	ti.Placeholder = "Enter password"
@@ -82,6 +102,13 @@ func connectCmd(ssid, password string) tea.Cmd {
 	}
 }
 
+func disconnectCmd(ssid string) tea.Cmd {
+	return func() tea.Msg {
+		err := network.Disconnect(ssid)
+		return disconnectResultMsg{err: err}
+	}
+}
+
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
@@ -103,6 +130,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.password.SetValue("")
 		return m, nil
 
+	case disconnectResultMsg:
+		if msg.err != nil {
+			m.err = msg.err
+		} else {
+			m.err = nil
+			m.list.SetItems(fetchNetworkItems())
+		}
+
+		return m, nil
+
 	case tea.KeyMsg:
 		if m.state == stateListView && m.list.FilterState() == list.Filtering {
 			break
@@ -113,6 +150,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch m.state {
 		case stateListView:
 			switch msg.String() {
+			case "d":
+				i, ok := m.list.SelectedItem().(network.Wifi)
+				if ok {
+					if i.Active {
+						m.selectedNetwork = i
+						m.err = nil
+						return m, disconnectCmd(i.SSID)
+					} else {
+						m.err = fmt.Errorf("Network '%s' is not currently connected", i.SSID)
+						return m, nil
+					}
+				}
 			case "enter", "l":
 				i, ok := m.list.SelectedItem().(network.Wifi)
 				if ok {

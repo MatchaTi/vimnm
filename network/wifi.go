@@ -98,3 +98,16 @@ func Connect(ssid, password string) error {
 
 	return nil
 }
+
+func Disconnect(ssid string) error {
+	cleanSSID := strings.TrimSpace(ssid)
+	cmd := exec.Command("nmcli", "connection", "down", "id", cleanSSID)
+	out, err := cmd.CombinedOutput()
+
+	if err != nil {
+		errMsg := strings.TrimSpace(string(out))
+		return fmt.Errorf("%v | Message nmcli: %s", err, errMsg)
+	}
+
+	return nil
+}
