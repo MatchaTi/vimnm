@@ -121,3 +121,22 @@ func Rescan() ([]Wifi, error) {
 
 	return GetNetworks(), nil
 }
+
+func Forget(ssid string) error {
+	cleanSSID := strings.TrimSpace(ssid)
+	if cleanSSID == "" {
+		return fmt.Errorf("Cannot forget network with empty SSID")
+	}
+
+	out, err := exec.Command("nmcli", "connection", "delete", "id", cleanSSID).CombinedOutput()
+	if err != nil {
+		errMsg := strings.TrimSpace(string(out))
+		if strings.Contains(strings.ToLower(errMsg), "unknown connection") || strings.Contains(strings.ToLower(errMsg), "not found") {
+			return fmt.Errorf("No saved profile found for '%s'", cleanSSID)
+		}
+
+		return fmt.Errorf("%v | Message nmcli: %s", err, errMsg)
+	}
+
+	return nil
+}

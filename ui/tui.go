@@ -26,6 +26,10 @@ var (
 		key.WithKeys("r"),
 		key.WithHelp("r", "rescan"),
 	)
+	keyForget = key.NewBinding(
+		key.WithKeys("f"),
+		key.WithHelp("f", "forget"),
+	)
 	keyDisconnect = key.NewBinding(
 		key.WithKeys("d"),
 		key.WithHelp("d", "disconnect"),
@@ -39,6 +43,7 @@ const (
 	statePasswordView
 	stateConnecting
 	stateRescanning
+	stateForgetting
 )
 
 type connectResultMsg struct {
@@ -52,6 +57,10 @@ type disconnectResultMsg struct {
 type rescanResultMsg struct {
 	networks []network.Wifi
 	err      error
+}
+
+type forgetResultMsg struct {
+	err error
 }
 
 type model struct {
@@ -174,6 +183,7 @@ func (m model) detailView() string {
 	detail += detailTitleStyle.Render("Actions") + "\n"
 	detail += "enter/l: connect\n"
 	detail += "d: disconnect\n"
+	detail += "f: forget\n"
 	detail += "r: rescan\n"
 	detail += "/: filter\n"
 	detail += "q: quit"
@@ -203,10 +213,10 @@ func InitialModel() model {
 	mList.Title = "Available Networks"
 
 	mList.AdditionalShortHelpKeys = func() []key.Binding {
-		return []key.Binding{keyConnect, keyDisconnect, keyRescan}
+		return []key.Binding{keyConnect, keyDisconnect, keyForget, keyRescan}
 	}
 	mList.AdditionalFullHelpKeys = func() []key.Binding {
-		return []key.Binding{keyConnect, keyDisconnect, keyRescan}
+		return []key.Binding{keyConnect, keyDisconnect, keyForget, keyRescan}
 	}
 
 	ti := textinput.New()
@@ -250,6 +260,13 @@ func rescanCmd() tea.Cmd {
 	return func() tea.Msg {
 		networks, err := network.Rescan()
 		return rescanResultMsg{networks: networks, err: err}
+	}
+}
+
+func forgetCmd(ssid string) tea.Cmd {
+	return func() tea.Msg {
+		err := network.Forget(ssid)
+		return forgetResultMsg{err: err}
 	}
 }
 
@@ -301,6 +318,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.state = stateListView
 		return m, nil
 
+	case forgetResultMsg:
+		if msg.err != nil {
+			m.err = msg.err
+		} else {
+			m.err = nil
+			m.list.SetItems(fetchNetworkItems())
+		}
+
+		m.state = stateListView
+		return m, nil
+
 	case tea.KeyMsg:
 		if m.state == stateListView && m.list.FilterState() == list.Filtering {
 			break
@@ -315,6 +343,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.state = stateRescanning
 				m.err = nil
 				return m, tea.Batch(rescanCmd(), m.spinner.Tick)
+			case "f":
+				i, ok := m.list.SelectedItem().(network.Wifi)
+				if ok {
+					m.selectedNetwork = i
+					m.state = stateForgetting
+					m.err = nil
+					return m, tea.Batch(forgetCmd(i.SSID), m.spinner.Tick)
+				}
 			case "d":
 				i, ok := m.list.SelectedItem().(network.Wifi)
 				if ok {
@@ -365,7 +401,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	} else if m.state == statePasswordView {
 		m.password, cmd = m.password.Update(msg)
 
-	} else if m.state == stateConnecting || m.state == stateRescanning {
+	} else if m.state == stateConnecting || m.state == stateRescanning || m.state == stateForgetting {
 		m.spinner, cmd = m.spinner.Update(msg)
 	}
 
@@ -381,6 +417,11 @@ func (m model) View() string {
 
 	if m.state == stateRescanning {
 		view := fmt.Sprintf("\n%s Rescanning networks...", m.spinner.View())
+		return m.renderFrame(view)
+	}
+
+	if m.state == stateForgetting {
+		view := fmt.Sprintf("\n%s Forgetting network %s...", m.spinner.View(), m.selectedNetwork.SSID)
 		return m.renderFrame(view)
 	}
 

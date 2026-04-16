@@ -15,6 +15,7 @@ A lightweight, Vim-motion powered TUI for managing Wi-Fi connections on Linux us
 - **Fast Filtering**: Just press `/` to search for specific SSIDs.
 - **Interactive Connection**: Connect to Wi-Fi with a clean password prompt.
 - **Quick Disconnect**: Press `d` to disconnect from the active network.
+- **Forget Saved Networks**: Press `f` to remove a saved Wi-Fi profile.
 - **Animated UI**: Built with the Bubble Tea framework for a smooth terminal experience.
 
 ## 🚀 Installation
@@ -52,6 +53,7 @@ vimnm --no-clear
 | `k`            | Move up                        |
 | `Enter` / `l`  | Connect to selected network    |
 | `d`            | Disconnect from active network |
+| `f`            | Forget saved network profile   |
 | `r`            | Rescan available networks      |
 | `/`            | Filter or search networks      |
 | `?`            | Show help menu                 |
@@ -65,7 +67,7 @@ vimnm --no-clear
 ## 📝 Goals
 
 - [x] Rescan for networks.
-- [ ] Forgotten networks management.
+- [x] Forgotten networks management.
 - [x] Detail view for network information.
 
 ## 🧑‍💻 Contributing
