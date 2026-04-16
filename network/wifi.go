@@ -111,3 +111,13 @@ func Disconnect(ssid string) error {
 
 	return nil
 }
+
+func Rescan() ([]Wifi, error) {
+	out, err := exec.Command("nmcli", "device", "wifi", "rescan").CombinedOutput()
+	if err != nil {
+		errMsg := strings.TrimSpace(string(out))
+		return nil, fmt.Errorf("%v | Message nmcli: %s", err, errMsg)
+	}
+
+	return GetNetworks(), nil
+}

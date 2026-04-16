@@ -52,6 +52,7 @@ vimnm --no-clear
 | `k`            | Move up                        |
 | `Enter` / `l`  | Connect to selected network    |
 | `d`            | Disconnect from active network |
+| `r`            | Rescan available networks      |
 | `/`            | Filter or search networks      |
 | `?`            | Show help menu                 |
 | `ctrl+c` / `q` | Quit the application           |
@@ -63,7 +64,7 @@ vimnm --no-clear
 
 ## 📝 Goals
 
-- [ ] Rescan for networks.
+- [x] Rescan for networks.
 - [ ] Forgotten networks management.
 - [x] Detail view for network information.
 
