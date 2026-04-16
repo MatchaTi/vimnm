@@ -69,6 +69,16 @@ vimnm --no-clear
 - [x] Rescan for networks.
 - [x] Forgotten networks management.
 - [x] Detail view for network information.
+- [ ] Manual refresh interval (auto-rescan every n seconds).
+- [ ] Sort networks by signal/security/name.
+- [ ] Favorite networks and quick-access filter.
+- [ ] Show known/saved profiles separately from scanned networks.
+- [ ] Connection history (last connected SSID + timestamp).
+- [ ] Confirm dialog before forgetting a saved profile.
+- [ ] Better error diagnostics from nmcli (friendly troubleshooting hints).
+- [ ] Toggle auto-connect for selected saved profile.
+- [ ] Optional compact mode for small terminal sizes.
+- [ ] Export debug log for issue reporting.
 
 ## 🧑‍💻 Contributing
 
