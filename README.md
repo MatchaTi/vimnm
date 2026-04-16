@@ -38,6 +38,12 @@ go build -o vimnm
 sudo mv vimnm /usr/local/bin/
 ```
 
+Optional: keep terminal content after exit.
+
+```bash
+vimnm --no-clear
+```
+
 ## ⌨️ Keybindings
 
 | Key            | Action                         |
@@ -59,7 +65,7 @@ sudo mv vimnm /usr/local/bin/
 
 - [ ] Rescan for networks.
 - [ ] Forgotten networks management.
-- [ ] Detail view for network information.
+- [x] Detail view for network information.
 
 ## 🧑‍💻 Contributing
 
